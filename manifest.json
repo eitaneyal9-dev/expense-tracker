@@ -1,9 +1,10 @@
 {
+  "id": "/expense-tracker/",
   "name": "ההוצאות שלי",
   "short_name": "הוצאות",
   "description": "מעקב הוצאות לטיול",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/expense-tracker/",
+  "scope": "/expense-tracker/",
   "display": "standalone",
   "background_color": "#f4f5f7",
   "theme_color": "#222222",
