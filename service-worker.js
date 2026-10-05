@@ -1,4 +1,4 @@
-const CACHE_NAME = "expense-tracker-v4";
+const CACHE_NAME = "expense-tracker-v5";
 
 const FILES_TO_CACHE = [
   "./",
@@ -32,10 +32,24 @@ self.addEventListener("activate", event => {
 });
 
 self.addEventListener("fetch", event => {
+  // רק בקשות GET
+  if (event.request.method !== "GET") return;
+
   event.respondWith(
-    caches.match(event.request)
-      .then(cachedResponse => {
-        return cachedResponse || fetch(event.request);
+    fetch(event.request)
+      .then(networkResponse => {
+        // שומרים את הגרסה החדשה ב-cache
+        const responseClone = networkResponse.clone();
+
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, responseClone);
+        });
+
+        return networkResponse;
+      })
+      .catch(() => {
+        // אין אינטרנט? משתמשים בגרסה האחרונה שנשמרה
+        return caches.match(event.request);
       })
   );
 });
