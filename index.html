@@ -3030,9 +3030,12 @@ function renderExpenses(data) {
 
         <div class="expense-right">
 
-          <div class="expense-amount">
-            ${currency.symbol}${formatNumber(expense.amount)}
-          </div>
+         <div class="expense-amount">
+  ${currency.symbol}${formatNumber(expense.amount)}
+  ${expense.currency !== "ILS"
+    ? ` · ≈ ₪${formatNumber(Math.round(toILS(expense.amount, expense.currency)))}`
+    : ""}
+</div>
 
           <button
             class="icon-button"
