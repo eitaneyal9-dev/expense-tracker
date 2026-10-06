@@ -668,7 +668,12 @@ select {
 
   <div class="filters">
 
-    <button id="filterToday" class="filter-button active"
+    <button id="filterAll" class="filter-button active"
+      onclick="setFilter('all')">
+      הכל
+    </button>
+
+    <button id="filterToday" class="filter-buttoמ"
       onclick="setFilter('today')">
       היום
     </button>
@@ -678,10 +683,6 @@ select {
       7 ימים
     </button>
 
-    <button id="filterAll" class="filter-button"
-      onclick="setFilter('all')">
-      הכל
-    </button>
 
   </div>
 
