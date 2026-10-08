@@ -306,6 +306,9 @@ button {
   color: white;
   font-weight: bold;
 }
+.filter-button:focus {
+  outline: none;
+}
 
 /* TOTALS */
 
@@ -588,6 +591,14 @@ select {
   .quick-primary .quick-title { font-size:23px; }
 }
 
+
+.trip-picker{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;margin-bottom:10px}
+.trip-picker strong{font-size:17px}
+.trip-change{border:1px solid #ddd;background:#f7f7f7;border-radius:11px;padding:11px 9px;cursor:pointer;font-size:13px}
+.trip-list-item{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#f7f7f7;padding:11px;border-radius:12px;margin-bottom:8px}
+.trip-list-item button{border:0;border-radius:9px;background:#222;color:#fff;padding:9px 12px;cursor:pointer}
+.currency-rate-row{display:grid;grid-template-columns:1fr 110px;align-items:center;gap:8px;margin:8px 0}
+.currency-rate-row input{margin:0}
 </style>
 </head>
 
@@ -596,6 +607,7 @@ select {
 <div class="app">
 
   <h1>💰 ההוצאות שלי</h1>
+  <div class="trip-picker card"><div><div class="small">הטיול הנוכחי</div><strong id="tripCurrentName">בחר טיול</strong></div><button class="trip-change" onclick="openTrips()">🌍 החלף / הוסף טיול</button></div>
   <div class="subtitle">תקציב, הוצאות וטרקים במקום אחד</div>
 
 
@@ -673,7 +685,7 @@ select {
       הכל
     </button>
 
-    <button id="filterToday" class="filter-buttoמ"
+    <button id="filterToday" class="filter-button"
       onclick="setFilter('today')">
       היום
     </button>
@@ -683,12 +695,13 @@ select {
       7 ימים
     </button>
 
+    
 
   </div>
 
 
   <div id="summaryTitle" class="section-title">
-    סה״כ היום
+    סה״כ כל התקופה
   </div>
 
   <div id="currencyTotals" class="currency-totals"></div>
@@ -719,6 +732,23 @@ select {
 </div>
 
 
+  <!-- TRIP MANAGER -->
+  <div id="tripsModal" class="modal"><div class="modal-box">
+    <div class="modal-title">🌍 הטיולים שלי</div>
+    <div id="tripList"></div>
+    <button class="full-button" onclick="openNewTrip()">＋ הוסף טיול חדש</button>
+    <button class="full-button cancel-button" style="margin-top:8px" onclick="closeTrips()">סגור</button>
+  </div></div>
+  <div id="newTripModal" class="modal"><div class="modal-box">
+    <div class="modal-title">✈️ טיול חדש</div>
+    <div class="rate-label">שם הטיול</div><input id="newTripName" placeholder="למשל שוויץ 2027">
+    <div class="rate-label">תקציב בשקלים (₪)</div><input id="newTripBudget" type="number" min="1" value="6000">
+    <div class="rate-label">מטבע מקומי</div><select id="newTripCurrency"></select>
+    <div class="rate-label">שער המטבע המקומי: כמה יחידות מטבע שוות ₪1?</div><input id="newTripRate" type="number" step="any" min="0.000001" placeholder="לדוגמה 0.25">
+    <div class="small">שערים נוספים לדולר, יורו ומטבעות אחרים אפשר להגדיר בהגדרות הטיול.</div>
+    <button class="full-button" onclick="createTrip()">צור טיול</button>
+    <button class="full-button cancel-button" style="margin-top:8px" onclick="closeNewTrip()">ביטול</button>
+  </div></div>
 <!-- START TREK MODAL -->
 
 <div id="startTrekModal" class="modal">
@@ -758,28 +788,20 @@ select {
 
     <div class="modal-title">⚙️ תקציב ושערי המרה</div>
 
-    <div class="rate-label">תקציב כולל בשקלים</div>
+    <div class="rate-label">תקציב הטיול בשקלים</div>
     <input id="settingBudget" type="number">
 
-    <div class="rate-grid">
-
-      <div class="rate-label">
-        כמה רופי נפאלי שווים ₪1?
-      </div>
-      <input id="rateNPR" type="number" step="0.01">
-
-      <div class="rate-label">
-        כמה שקלים שווה $1?
-      </div>
-      <input id="rateUSD" type="number" step="0.01">
-
-      <div class="rate-label">
-        כמה שקלים שווה €1?
-      </div>
-      <input id="rateEUR" type="number" step="0.01">
-
-    </div>
-
+    <div class="rate-label">המטבע המקומי: <strong id="settingsLocalName"></strong></div>
+    <div class="small">כל שער הוא מספר יחידות המטבע השוות לשקל אחד. לדולר וליורו ניתן להזין גם שערים.</div>
+    <div id="currencyRateRows"></div>
+    <div class="rate-label">הוסף מטבע לטיול</div>
+    <select id="addCurrencySelect"></select>
+    <button class="danger-button" onclick="addCurrencyToTrip()">＋ הוסף מטבע מהרשימה</button>
+    <div class="rate-label" style="margin-top:12px">מטבע שלא מופיע ברשימה</div>
+    <input id="customCurrencyCode" placeholder="קוד מטבע באנגלית, למשל XYZ" maxlength="6">
+    <input id="customCurrencyName" placeholder="שם המטבע בעברית">
+    <input id="customCurrencySymbol" placeholder="סמל המטבע (לא חובה)">
+    <button class="danger-button" onclick="addCustomCurrency()">＋ צור מטבע חדש</button>
     <div class="small" style="margin-bottom:14px">
       השערים משמשים רק לחישוב התקציב בשקלים.
       הסכום המקורי של כל הוצאה נשמר.
@@ -856,82 +878,95 @@ select {
    SETTINGS
 ========================= */
 
-let settings =
-  JSON.parse(localStorage.getItem("expenseSettings")) || {
-    budgetILS: 6000,
-    nprPerILS: 43,
-    usdToILS: 3.7,
-    eurToILS: 4.3
-  };
-
-settings = {
-  budgetILS: Number(settings.budgetILS) || 6000,
-  nprPerILS: Number(settings.nprPerILS) || 43,
-  usdToILS: Number(settings.usdToILS) || 3.7,
-  eurToILS: Number(settings.eurToILS) || 4.3
+const TRIPS_KEY = "expenseTrackerTripsV1";
+const ACTIVE_TRIP_KEY = "expenseTrackerActiveTripV1";
+const currencyCatalog = {
+ ILS:{symbol:"₪",name:"שקל ישראלי",aliases:["שקל","שקלים","שח","ils"]},
+ NPR:{symbol:"रू",name:"רופי נפאלי",aliases:["רופי","רופיות","npr","rupee"]},
+ USD:{symbol:"$",name:"דולר אמריקאי",aliases:["דולר","דולרים","usd","dollar"]},
+ EUR:{symbol:"€",name:"יורו",aliases:["יורו","eur","euro"]},
+ CHF:{symbol:"CHF",name:"פרנק שוויצרי",aliases:["פרנק","פרנקים","chf","franc"]},
+ THB:{symbol:"฿",name:"באט תאילנדי",aliases:["באט","thb","baht"]},
+ JPY:{symbol:"¥",name:"ין יפני",aliases:["ין","יין","jpy","yen"]},
+ INR:{symbol:"₹",name:"רופי הודי",aliases:["רופי הודי","inr"]},
+ GBP:{symbol:"£",name:"לירה שטרלינג",aliases:["פאונד","לירה שטרלינג","gbp","pound"]},
+ AUD:{symbol:"A$",name:"דולר אוסטרלי",aliases:["דולר אוסטרלי","aud"]},
+ CAD:{symbol:"C$",name:"דולר קנדי",aliases:["דולר קנדי","cad"]},
+ NZD:{symbol:"NZ$",name:"דולר ניו זילנדי",aliases:["דולר ניו זילנדי","nzd"]},
+ CNY:{symbol:"¥",name:"יואן סיני",aliases:["יואן","cny","yuan"]},
+ KRW:{symbol:"₩",name:"וון קוריאני",aliases:["וון","krw","won"]},
+ VND:{symbol:"₫",name:"דונג וייטנאמי",aliases:["דונג","vnd","dong"]},
+ IDR:{symbol:"Rp",name:"רופיה אינדונזית",aliases:["רופיה","idr"]},
+ MYR:{symbol:"RM",name:"רינגיט מלזי",aliases:["רינגיט","myr"]},
+ SGD:{symbol:"S$",name:"דולר סינגפורי",aliases:["דולר סינגפורי","sgd"]},
+ PHP:{symbol:"₱",name:"פסו פיליפיני",aliases:["פסו פיליפיני","php"]},
+ AED:{symbol:"د.إ",name:"דירהם אמירתי",aliases:["דירהם","aed"]},
+ TRY:{symbol:"₺",name:"לירה טורקית",aliases:["לירה טורקית","try"]},
+ GEL:{symbol:"₾",name:"לארי גאורגי",aliases:["לארי","gel"]},
+ CZK:{symbol:"Kč",name:"קורונה צ'כית",aliases:["קורונה צכית","czk"]},
+ HUF:{symbol:"Ft",name:"פורינט הונגרי",aliases:["פורינט","huf"]},
+ PLN:{symbol:"zł",name:"זלוטי פולני",aliases:["זלוטי","pln"]},
+ SEK:{symbol:"kr",name:"כתר שוודי",aliases:["כתר שוודי","sek"]},
+ NOK:{symbol:"kr",name:"כתר נורווגי",aliases:["כתר נורווגי","nok"]},
+ DKK:{symbol:"kr",name:"כתר דני",aliases:["כתר דני","dkk"]},
+ ZAR:{symbol:"R",name:"ראנד דרום אפריקאי",aliases:["ראנד","zar"]},
+ MXN:{symbol:"MX$",name:"פסו מקסיקני",aliases:["פסו מקסיקני","mxn"]},
+ BRL:{symbol:"R$",name:"ריאל ברזילאי",aliases:["ריאל ברזילאי","brl"]},
+ ARS:{symbol:"AR$",name:"פסו ארגנטינאי",aliases:["פסו ארגנטינאי","ars"]},
+ EGP:{symbol:"E£",name:"לירה מצרית",aliases:["לירה מצרית","egp"]},
+ MAD:{symbol:"DH",name:"דירהם מרוקאי",aliases:["דירהם מרוקאי","mad"]}
 };
-
-
-/* =========================
-   DATA
-========================= */
-
-let expenses =
-  JSON.parse(localStorage.getItem("expenses")) || [];
-
-let treks =
-  JSON.parse(localStorage.getItem("treks")) || [];
-
-let activeTrekId =
-  localStorage.getItem("activeTrekId");
-
-activeTrekId =
-  activeTrekId ? Number(activeTrekId) : null;
-
-let currentFilter = "today";
-let editingId = null;
-
-
-/*
- Old expenses are preserved.
- They are assumed to be budget expenses
- unless explicitly changed later.
-*/
-
-expenses = expenses.map(expense => ({
-  id: expense.id || Date.now() + Math.random(),
-  amount: Number(expense.amount) || 0,
-  currency: expense.currency || "ILS",
-  description: expense.description || "ללא תיאור",
-  category: expense.category || "אחר",
-  date: expense.date || new Date().toISOString(),
-
-  trekId:
-    expense.trekId !== undefined
-      ? expense.trekId
-      : null,
-
-  includeInBudget:
-    expense.includeInBudget !== undefined
-      ? expense.includeInBudget
-      : true
-}));
-
+const DEFAULT_CURRENCY_CODES=new Set(Object.keys(currencyCatalog));
+let tripStore;
+try { tripStore = JSON.parse(localStorage.getItem(TRIPS_KEY)) || {}; } catch(e){ tripStore={}; }
+let trips = Array.isArray(tripStore.trips) ? tripStore.trips : [];
+if(tripStore.customCurrencies)Object.assign(currencyCatalog,tripStore.customCurrencies);
+let activeTripId = localStorage.getItem(ACTIVE_TRIP_KEY);
+if (!trips.length) {
+ trips=[{id:"trip-nepal-2026",name:"נפאל 2026",localCurrency:"NPR",settings:{budgetILS:6000,rates:{ILS:1,NPR:43,USD:1/3.7,EUR:1/4.3}},expenses:[],treks:[],activeTrekId:null}];
+ activeTripId=trips[0].id;
+}
+if(!trips.some(t=>t.id===activeTripId)) activeTripId=trips[0].id;
+let settings, expenses, treks, activeTrekId;
+let currentFilter="all";
+let editingId=null;
+function getTrip(){return trips.find(t=>t.id===activeTripId) || trips[0];}
+function loadTrip(){
+ const t=getTrip();
+ settings=t.settings;
+ if(!settings.rates) settings.rates={ILS:1,NPR:43,USD:1/3.7,EUR:1/4.3};
+ settings.rates.ILS=1;
+ expenses=t.expenses || (t.expenses=[]);
+ treks=t.treks || (t.treks=[]);
+ activeTrekId=t.activeTrekId || null;
+}
+function saveAll(){
+ const t=getTrip();
+ t.expenses=expenses;t.treks=treks;t.settings=settings;t.activeTrekId=activeTrekId;
+ const customCurrencies=Object.fromEntries(Object.entries(currencyCatalog).filter(([c])=>!DEFAULT_CURRENCY_CODES.has(c)));
+ localStorage.setItem(TRIPS_KEY,JSON.stringify({trips,customCurrencies}));
+ localStorage.setItem(ACTIVE_TRIP_KEY,activeTripId);
+}
+loadTrip();
 saveAll();
-
-
 /* =========================
    CONSTANTS
 ========================= */
 
-const currencies = {
-  NPR: { symbol:"रू", name:"רופי נפאלי" },
-  ILS: { symbol:"₪", name:"שקל" },
-  USD: { symbol:"$", name:"דולר" },
-  EUR: { symbol:"€", name:"יורו" }
-};
-
-
+const currencies = currencyCatalog;
+function currencyInfo(code){return currencyCatalog[code] || {name:code,symbol:code,aliases:[code.toLowerCase()]};}
+function currencySymbol(code){return currencyInfo(code).symbol;}
+function tripCurrencyCodes(){return Object.keys(settings.rates).filter(c=>c==="ILS" || Number(settings.rates[c])>0);}
+function populateCurrencySelects(){
+ ["manualCurrency","editCurrency"].forEach(id=>{
+  const select=document.getElementById(id); const previous=select.value;
+  select.innerHTML="";
+  tripCurrencyCodes().filter(c=>c!=="ILS").concat(["ILS"]).forEach(code=>{
+   const option=document.createElement("option");option.value=code;option.textContent=`${currencySymbol(code)} ${currencyInfo(code).name} (${code})`;select.appendChild(option);
+  });
+  select.value=tripCurrencyCodes().includes(previous)?previous:getTrip().localCurrency;
+ });
+}
 const categoryData = [
 
   {
@@ -1052,35 +1087,11 @@ function saveAll() {
    CURRENCY CONVERSION
 ========================= */
 
-function toILS(amount, currency) {
-
-  amount = Number(amount);
-
-  if (currency === "ILS") {
-    return amount;
-  }
-
-  if (currency === "NPR") {
-    return amount / settings.nprPerILS;
-  }
-
-  if (currency === "USD") {
-    return amount * settings.usdToILS;
-  }
-
-  if (currency === "EUR") {
-    return amount * settings.eurToILS;
-  }
-
-  return 0;
+function toILS(amount,currency){
+ const rate=Number(settings.rates[currency]);
+ return rate>0 ? Number(amount)/rate : 0;
 }
-
-
-function ilsToNPR(amountILS) {
-  return amountILS * settings.nprPerILS;
-}
-
-
+function ilsToLocal(amountILS){return Number(amountILS)*(Number(settings.rates[getTrip().localCurrency])||0);}
 /* =========================
    BUDGET
 ========================= */
@@ -1133,10 +1144,8 @@ function renderBudget() {
     "budgetLeftNpr"
   ).textContent =
     left >= 0
-      ? `≈ रू${formatNumber(ilsToNPR(left))}`
-      : `≈ रू${formatNumber(
-          ilsToNPR(Math.abs(left))
-        )} מעל התקציב`;
+      ? `≈ ${currencySymbol(getTrip().localCurrency)}${formatNumber(ilsToLocal(left))}`
+      : `≈ ${currencySymbol(getTrip().localCurrency)}${formatNumber(ilsToLocal(Math.abs(left)))} מעל התקציב`;
 
 
   document.getElementById(
@@ -1156,84 +1165,97 @@ function renderBudget() {
    SETTINGS MODAL
 ========================= */
 
-function openSettings() {
-
-  document.getElementById(
-    "settingBudget"
-  ).value = settings.budgetILS;
-
-  document.getElementById(
-    "rateNPR"
-  ).value = settings.nprPerILS;
-
-  document.getElementById(
-    "rateUSD"
-  ).value = settings.usdToILS;
-
-  document.getElementById(
-    "rateEUR"
-  ).value = settings.eurToILS;
-
-  document.getElementById(
-    "settingsModal"
-  ).classList.add("visible");
+function openSettings(){
+ document.getElementById("settingBudget").value=settings.budgetILS;
+ document.getElementById("settingsLocalName").textContent=currencyInfo(getTrip().localCurrency).name;
+ const container=document.getElementById("currencyRateRows");container.innerHTML="";
+ Object.keys(settings.rates).filter(code=>code!=="ILS").forEach(code=>{
+  const row=document.createElement("div");row.className="currency-rate-row";
+  const label=document.createElement("label");label.textContent=`${currencyInfo(code).name} (${code}) ל־₪1`;
+  const input=document.createElement("input");input.type="number";input.step="any";input.min="0.000001";input.value=settings.rates[code];input.dataset.rateCode=code;
+  row.append(label,input);container.appendChild(row);
+ });
+ const select=document.getElementById("addCurrencySelect");select.innerHTML="";
+ Object.keys(currencyCatalog).filter(c=>c!=="ILS" && !settings.rates[c]).sort().forEach(code=>{
+  const option=document.createElement("option");option.value=code;option.textContent=`${currencyInfo(code).name} (${code})`;select.appendChild(option);
+ });
+ document.getElementById("settingsModal").classList.add("visible");
 }
-
-
-function closeSettings() {
-
-  document.getElementById(
-    "settingsModal"
-  ).classList.remove("visible");
+function closeSettings(){document.getElementById("settingsModal").classList.remove("visible");}
+function saveSettings(){
+ const budget=Number(document.getElementById("settingBudget").value);
+ if(!(budget>0)){alert("התקציב חייב להיות גדול מאפס");return;}
+ const newRates={...settings.rates};
+ for(const input of document.querySelectorAll("[data-rate-code]")){
+  const rate=Number(input.value);
+  if(!(rate>0)){alert(`יש להזין שער חיובי עבור ${input.dataset.rateCode}`);return;}
+  newRates[input.dataset.rateCode]=rate;
+ }
+ settings.budgetILS=budget;settings.rates=newRates;
+ saveAll();closeSettings();populateCurrencySelects();renderApp();
 }
-
-
-function saveSettings() {
-
-  const budget =
-    Number(document.getElementById(
-      "settingBudget"
-    ).value);
-
-  const npr =
-    Number(document.getElementById(
-      "rateNPR"
-    ).value);
-
-  const usd =
-    Number(document.getElementById(
-      "rateUSD"
-    ).value);
-
-  const eur =
-    Number(document.getElementById(
-      "rateEUR"
-    ).value);
-
-
-  if (
-    budget <= 0 ||
-    npr <= 0 ||
-    usd <= 0 ||
-    eur <= 0
-  ) {
-
-    alert("אחד הערכים אינו תקין");
-    return;
+function addCurrencyToTrip(){
+ const code=document.getElementById("addCurrencySelect").value;
+ if(!code){alert("בחר מטבע מהרשימה");return;}
+ if(!confirm("האם להוסיף את המטבע? יש להגדיר לו שער המרה לפני הזנת הוצאות."))return;
+ settings.rates[code]=0;saveAll();openSettings();
+}
+function addCustomCurrency(){
+ const code=document.getElementById("customCurrencyCode").value.trim().toUpperCase();
+ const name=document.getElementById("customCurrencyName").value.trim();
+ const symbol=document.getElementById("customCurrencySymbol").value.trim()||code;
+ if(!/^[A-Z]{3,6}$/.test(code)||!name){alert("הזן קוד באנגלית של 3–6 אותיות ושם מטבע");return;}
+ if(currencyCatalog[code] && !settings.rates[code]){settings.rates[code]=0;}
+ else if(!currencyCatalog[code]){currencyCatalog[code]={symbol,name,aliases:[code.toLowerCase(),name]};settings.rates[code]=0;}
+ else {alert("המטבע כבר קיים בטיול");return;}
+ saveAll();document.getElementById("customCurrencyCode").value="";document.getElementById("customCurrencyName").value="";document.getElementById("customCurrencySymbol").value="";openSettings();
+}
+function openTrips(){
+ const list=document.getElementById("tripList");list.innerHTML="";
+ trips.forEach(t=>{
+  const row=document.createElement("div");row.className="trip-list-item";
+  const label=document.createElement("span");label.textContent=`${t.name} · ${t.localCurrency}`;
+  const button=document.createElement("button");button.textContent=t.id===activeTripId?"נוכחי":"בחר";button.disabled=t.id===activeTripId;
+  button.onclick=()=>switchTrip(t.id);row.append(label,button);list.appendChild(row);
+ });
+ document.getElementById("tripsModal").classList.add("visible");
+}
+function closeTrips(){document.getElementById("tripsModal").classList.remove("visible");}
+function openNewTrip(){closeTrips();
+ const select=document.getElementById("newTripCurrency");select.innerHTML="";
+ Object.keys(currencyCatalog).filter(c=>c!=="ILS").sort().forEach(code=>{
+  const option=document.createElement("option");option.value=code;option.textContent=`${currencyInfo(code).name} (${code})`;select.appendChild(option);
+ });
+ const other=document.createElement("option");other.value="CUSTOM";other.textContent="מטבע אחר — הזנת קוד";select.appendChild(other);
+ select.value="EUR";document.getElementById("newTripRate").value="";
+ document.getElementById("newTripModal").classList.add("visible");
+}
+function closeNewTrip(){document.getElementById("newTripModal").classList.remove("visible");}
+function createTrip(){
+ const name=document.getElementById("newTripName").value.trim();
+ const budget=Number(document.getElementById("newTripBudget").value);
+ let code=document.getElementById("newTripCurrency").value;
+ if(code==="CUSTOM"){
+  const custom=prompt("מה קוד המטבע? (3–6 אותיות באנגלית)");
+  if(!custom)return;
+  code=custom.trim().toUpperCase();
+  if(!/^[A-Z]{3,6}$/.test(code)){alert("קוד המטבע אינו תקין");return;}
+  if(!currencyCatalog[code]){
+   const name=prompt("מה שם המטבע?");if(!name||!name.trim())return;
+   currencyCatalog[code]={name:name.trim(),symbol:code,aliases:[code.toLowerCase(),name.trim()]};
   }
-
-
-  settings.budgetILS = budget;
-  settings.nprPerILS = npr;
-  settings.usdToILS = usd;
-  settings.eurToILS = eur;
-
-  saveAll();
-  closeSettings();
-  renderApp();
+ }
+ const rate=Number(document.getElementById("newTripRate").value);
+ if(!name||!(budget>0)||!(rate>0)){alert("יש למלא שם, תקציב ושער המרה חיובי למטבע המקומי");return;}
+ saveAll();
+ const t={id:`trip-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,name,localCurrency:code,settings:{budgetILS:budget,rates:{ILS:1,[code]:rate,USD:code==="USD"?rate:0,EUR:code==="EUR"?rate:0}},expenses:[],treks:[],activeTrekId:null};
+ // מטבעות ללא שער אינם זמינים עד שמגדירים להם שער בהגדרות.
+ trips.push(t);activeTripId=t.id;loadTrip();saveAll();closeNewTrip();currentFilter="all";setFilter("all");populateCurrencySelects();renderApp();
 }
-
-
+function switchTrip(id){
+ if(!trips.some(t=>t.id===id))return;
+ saveAll();activeTripId=id;loadTrip();saveAll();closeTrips();currentFilter="all";setFilter("all");populateCurrencySelects();renderApp();
+}
 /* =========================
    TREK MODE
 ========================= */
@@ -1487,11 +1509,11 @@ function renderTrekHistory() {
 
 
       const originalTotals =
-        ["NPR","ILS","USD","EUR"]
+        Object.keys(totals)
           .filter(code => totals[code])
           .map(
             code =>
-              `${currencies[code].symbol}${formatNumber(totals[code])}`
+              `${currencySymbol(code)}${formatNumber(totals[code])}`
           )
           .join(" · ");
 
@@ -1621,79 +1643,34 @@ function detectCategory(text) {
    CURRENCY
 ========================= */
 
-function detectCurrency(text) {
-
-  const t =
-    text.toLowerCase();
-
-
-  if (
-    t.includes("שקל") ||
-    t.includes("שקלים") ||
-    t.includes('ש"ח') ||
-    t.includes("שח") ||
-    t.includes("ils") ||
-    text.includes("₪")
-  ) return "ILS";
-
-
-  if (
-    t.includes("דולר") ||
-    t.includes("דולרים") ||
-    t.includes("usd") ||
-    text.includes("$")
-  ) return "USD";
-
-
-  if (
-    t.includes("יורו") ||
-    t.includes("euro") ||
-    t.includes("eur") ||
-    text.includes("€")
-  ) return "EUR";
-
-
-  if (
-    t.includes("רופי") ||
-    t.includes("רופיות") ||
-    t.includes("npr") ||
-    t.includes("rupee") ||
-    t.includes("rupees") ||
-    text.includes("रू") ||
-    text.includes("₨")
-  ) return "NPR";
-
-
-  return null;
+function detectCurrency(text){
+ const lower=text.toLowerCase();
+ // זיהוי שמות וקודים; מטבעות זמינים רק אם הוגדר להם שער חיובי.
+ const codes=tripCurrencyCodes().filter(c=>c!=="ILS");
+ for(const code of ["ILS",...codes]){
+  const info=currencyInfo(code);
+  for(const alias of [code.toLowerCase(),...(info.aliases||[])].sort((a,b)=>b.length-a.length)){
+   if(alias.length>=2 && (alias.match(/^[a-z]+$/) ? new RegExp(`\\b${alias}\\b`,"i").test(text) : lower.includes(alias.toLowerCase()))) return code;
+  }
+ }
+ if(text.includes("₪"))return "ILS";
+ if(text.includes("€")&&codes.includes("EUR"))return "EUR";
+ if(text.includes("$")&&codes.includes("USD"))return "USD";
+ for(const code of codes){const symbol=currencySymbol(code);if(symbol.length>1 && text.includes(symbol))return code;}
+ return null;
 }
-
-
-function removeCurrencyWords(text) {
-
-  return text
-    .replace(/שקלים?/gi,"")
-    .replace(/ש["״']?ח/gi,"")
-    .replace(/ils/gi,"")
-    .replace(/₪/g,"")
-
-    .replace(/דולרים?/gi,"")
-    .replace(/usd/gi,"")
-    .replace(/\$/g,"")
-
-    .replace(/יורו/gi,"")
-    .replace(/euros?/gi,"")
-    .replace(/eur/gi,"")
-    .replace(/€/g,"")
-
-    .replace(/רופיות?/gi,"")
-    .replace(/רופי/gi,"")
-    .replace(/rupees?/gi,"")
-    .replace(/npr/gi,"")
-    .replace(/रू/g,"")
-    .replace(/₨/g,"");
+function removeCurrencyWords(text){
+ let result=text;
+ for(const code of tripCurrencyCodes()){
+  const info=currencyInfo(code);
+  for(const alias of [code,...(info.aliases||[])]){
+   if(!alias)continue;
+   result=result.replace(new RegExp(alias.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi")," ");
+  }
+  if(["₪","€","$","₹","฿","रू"].includes(info.symbol))result=result.split(info.symbol).join(" ");
+ }
+ return result;
 }
-
-
 /* =========================
    HEBREW NUMBER PARSER
 ========================= */
@@ -2054,7 +2031,7 @@ function parseExpense(text) {
 
 
   const currency =
-    detectCurrency(original) || "NPR";
+    detectCurrency(original) || getTrip().localCurrency;
 
   const category =
     detectCategory(original);
@@ -2148,8 +2125,7 @@ function updatePreview() {
   }
 
 
-  const currency =
-    currencies[parsed.currency];
+  const currency = currencyInfo(parsed.currency);
 
   const category =
     getCategory(
@@ -2814,7 +2790,7 @@ function renderCurrencyTotals(data) {
   });
 
 
-  ["NPR","ILS","USD","EUR"]
+  Object.keys(totals)
     .forEach(code => {
 
       if (!totals[code]) {
@@ -2832,11 +2808,11 @@ function renderCurrencyTotals(data) {
       card.innerHTML = `
 
         <div class="currency-name">
-          ${currencies[code].name}
+          ${currencyInfo(code).name}
         </div>
 
         <div class="currency-amount">
-          ${currencies[code].symbol}${formatNumber(totals[code])}
+          ${currencySymbol(code)}${formatNumber(totals[code])}
         </div>
       `;
 
@@ -2896,7 +2872,7 @@ function renderCategorySummary(data) {
           Object.entries(values)
             .map(
               ([currency,amount]) =>
-                `${currencies[currency].symbol}${formatNumber(amount)}`
+                `${currencySymbol(currency)}${formatNumber(amount)}`
             )
             .join("<br>");
 
@@ -2969,10 +2945,7 @@ function renderExpenses(data) {
     )
     .forEach(expense => {
 
-      const currency =
-        currencies[
-          expense.currency
-        ];
+      const currency = currencyInfo(expense.currency);
 
       const category =
         getCategory(
@@ -3180,6 +3153,7 @@ function renderApp() {
   const filtered =
     getFilteredExpenses();
 
+  document.getElementById("tripCurrentName").textContent=getTrip().name;
   renderBudget();
   renderTrekMode();
   renderCurrencyTotals(filtered);
@@ -3194,7 +3168,8 @@ function renderApp() {
 ========================= */
 
 populateCategories();
-renderApp();
+populateCurrencySelects();
+setFilter("all");
 quickInput.focus();
 
 </script>
