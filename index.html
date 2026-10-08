@@ -1051,37 +1051,6 @@ const categoryData = [
 ];
 
 
-/* =========================
-   SAVE
-========================= */
-
-function saveAll() {
-
-  localStorage.setItem(
-    "expenses",
-    JSON.stringify(expenses)
-  );
-
-  localStorage.setItem(
-    "treks",
-    JSON.stringify(treks)
-  );
-
-  localStorage.setItem(
-    "expenseSettings",
-    JSON.stringify(settings)
-  );
-
-  if (activeTrekId) {
-    localStorage.setItem(
-      "activeTrekId",
-      activeTrekId
-    );
-  } else {
-    localStorage.removeItem("activeTrekId");
-  }
-}
-
 
 /* =========================
    CURRENCY CONVERSION
